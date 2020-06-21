@@ -7,14 +7,22 @@ import { workerError } from '@shared/constants';
 
 // Start the server
 const port = Number(process.env.PORT || 3000);
-app.listen(port, () => {
+app.listen(port, async () => {
   logger.info('Express server started on port: ' + port);
 
   const eventLogger = new EventLogger<typeof workerError>(workerError);
-  eventLogger.run();
+  await eventLogger.init();
+  await eventLogger.run();
 });
 
 const errorHandler = new ErrorHandler();
+
+process.on('unhandledRejection', (reason: string, p: Promise<any>) => {
+  // I just caught an unhandled promise rejection,
+  // since we already have fallback handler for unhandled errors (see below),
+  // let throw and let him handle that
+  throw reason;
+});
 
 process.on('uncaughtException', (error: Error) => {
   errorHandler.handleError(error);

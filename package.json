@@ -27,6 +27,8 @@
     "@workers": "dist/workers"
   },
   "dependencies": {
+    "@types/amqplib": "^0.5.13",
+    "amqplib": "^0.5.6",
     "command-line-args": "^5.1.1",
     "cookie-parser": "^1.4.5",
     "dotenv": "^8.2.0",
