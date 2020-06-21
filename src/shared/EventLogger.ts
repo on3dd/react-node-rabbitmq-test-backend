@@ -1,8 +1,10 @@
-import logger from '@shared/Logger';
+// import logger from '@shared/Logger';
+import { Logger } from 'winston';
 import { LogEmitter } from '@/modules/LogEmitter';
 
 import AppError from '@shared/AppError';
 import { workerError } from '@shared/constants';
+import ErrorHandler from '@shared/ErrorHandler';
 
 import amqp from 'amqplib';
 
@@ -10,22 +12,26 @@ import { Worker } from 'worker_threads';
 
 export default class EventLogger<T> {
   private _workerData: T;
+  private _logger: Logger;
+  private _errorHandler: ErrorHandler;
 
-  private connection!: amqp.Connection;
-  private channel!: amqp.Channel;
+  private _connection!: amqp.Connection;
+  private _channel!: amqp.Channel;
 
   private readonly exchange = 'logs';
 
-  constructor(workerData: T) {
+  constructor(workerData: T, logger: Logger, errorHandler: ErrorHandler) {
     this._workerData = workerData;
+    this._logger = logger;
+    this._errorHandler = errorHandler;
   }
 
   init = async () => {
     try {
-      this.connection = await amqp.connect('amqp://localhost');
-      this.channel = await this.connection.createChannel();
+      this._connection = await amqp.connect('amqp://localhost');
+      this._channel = await this._connection.createChannel();
 
-      await this.channel.assertExchange(this.exchange, 'fanout', {
+      await this._channel.assertExchange(this.exchange, 'fanout', {
         durable: false,
       });
     } catch (err) {
@@ -49,22 +55,23 @@ export default class EventLogger<T> {
   };
 
   private ononline = () => {
-    logger.info('Worker went online');
+    this._logger.info('Worker went online');
   };
 
   private onmessage = (evt: LogEmitter.Event) => {
-    logger.info('Event:', evt);
+    this._logger.info('Event:', evt);
+
     const msg = JSON.stringify(evt);
-    this.channel.publish(this.exchange, '', Buffer.from(msg));
+    this._channel.publish(this.exchange, '', Buffer.from(msg));
   };
 
   private onerror = (err: Error) => {
-    logger.error(`Worker error: ${err.message}`);
+    this._errorHandler.handleError(err);
 
-    setTimeout(() => {
+    setTimeout(async () => {
       if (err.message === workerError) {
-        logger.info('Restarting worker...');
-        this.run();
+        this._logger.info('Restarting worker...');
+        await this.run();
       }
     }, 1000);
   };

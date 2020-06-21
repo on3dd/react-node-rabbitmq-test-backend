@@ -5,17 +5,22 @@ import EventLogger from '@shared/EventLogger';
 import ErrorHandler from '@shared/ErrorHandler';
 import { workerError } from '@shared/constants';
 
+const errorHandler = new ErrorHandler();
+
 // Start the server
 const port = Number(process.env.PORT || 3000);
 app.listen(port, async () => {
   logger.info('Express server started on port: ' + port);
 
-  const eventLogger = new EventLogger<typeof workerError>(workerError);
+  const eventLogger = new EventLogger<typeof workerError>(
+    workerError,
+    logger,
+    errorHandler,
+  );
+
   await eventLogger.init();
   await eventLogger.run();
 });
-
-const errorHandler = new ErrorHandler();
 
 process.on('unhandledRejection', (reason: string, p: Promise<any>) => {
   // I just caught an unhandled promise rejection,
