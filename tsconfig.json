@@ -13,11 +13,17 @@
     "target": "es6",
     "moduleResolution": "node",
     "paths": {
+      "@/*": [
+        "src/*"
+      ],
       "@daos/*": [
         "src/daos/*"
       ],
       "@entities/*": [
         "src/entities/*"
+      ],
+      "@modules/*": [
+        "src/modules/*"
       ],
       "@shared/*": [
         "src/shared/*"
@@ -34,6 +40,7 @@
     ]
   },
   "include": [
+    "src/*.ts",
     "src/**/*.ts",
     "spec/**/*.ts"
   ],

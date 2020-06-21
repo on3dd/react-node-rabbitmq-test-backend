@@ -12,7 +12,7 @@
     "watch": [
       "src"
     ],
-    "ext": "ts, html",
+    "ext": "js, ts, html",
     "ignore": [
       "src/public"
     ],
@@ -21,8 +21,10 @@
   "_moduleAliases": {
     "@daos": "dist/daos",
     "@entities": "dist/entities",
+    "@modules": "dist/modules",
     "@shared": "dist/shared",
-    "@server": "dist/Server"
+    "@server": "dist/Server",
+    "@workers": "dist/workers"
   },
   "dependencies": {
     "command-line-args": "^5.1.1",
