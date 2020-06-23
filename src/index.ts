@@ -1,10 +1,11 @@
 import './LoadEnv'; // Must be the first import
 import app from '@server';
 import logger from '@shared/Logger';
-import EventLogger from '@shared/EventLogger';
 import ErrorHandler from '@shared/ErrorHandler';
-import { workerError } from '@shared/constants';
-import Consumer from '@entities/Consumer';
+import { initLogger, initConsumer } from '@shared/functions';
+
+const server = require('http').createServer(app);
+const webSocketServer = require('socket.io')(server);
 
 const errorHandler = new ErrorHandler();
 
@@ -13,19 +14,8 @@ const port = Number(process.env.PORT || 3000);
 app.listen(port, async () => {
   logger.info('Express server started on port: ' + port);
 
-  const eventLogger = new EventLogger<typeof workerError>(
-    workerError,
-    logger,
-    errorHandler,
-  );
-
-  await eventLogger.init();
-  await eventLogger.run();
-
-  const consumer = new Consumer(logger);
-
-  await consumer.init();
-  await consumer.run();
+  await initLogger(logger, errorHandler);
+  await initConsumer(webSocketServer, logger, errorHandler);
 });
 
 process.on('unhandledRejection', (reason: string, p: Promise<any>) => {
