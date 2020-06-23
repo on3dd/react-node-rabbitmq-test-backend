@@ -4,6 +4,7 @@ import logger from '@shared/Logger';
 import EventLogger from '@shared/EventLogger';
 import ErrorHandler from '@shared/ErrorHandler';
 import { workerError } from '@shared/constants';
+import Consumer from '@entities/Consumer';
 
 const errorHandler = new ErrorHandler();
 
@@ -20,12 +21,14 @@ app.listen(port, async () => {
 
   await eventLogger.init();
   await eventLogger.run();
+
+  const consumer = new Consumer(logger);
+
+  await consumer.init();
+  await consumer.run();
 });
 
 process.on('unhandledRejection', (reason: string, p: Promise<any>) => {
-  // I just caught an unhandled promise rejection,
-  // since we already have fallback handler for unhandled errors (see below),
-  // let throw and let him handle that
   throw reason;
 });
 
