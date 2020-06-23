@@ -1,3 +1,5 @@
+import amqp from 'amqplib';
+
 // import logger from '@shared/Logger';
 import { Logger } from 'winston';
 import { LogEmitter } from '@/modules/LogEmitter';
@@ -5,8 +7,6 @@ import { LogEmitter } from '@/modules/LogEmitter';
 import AppError from '@shared/AppError';
 import { workerError } from '@shared/constants';
 import ErrorHandler from '@shared/ErrorHandler';
-
-import amqp from 'amqplib';
 
 import { Worker } from 'worker_threads';
 
@@ -35,7 +35,7 @@ export default class EventLogger<T> {
         durable: false,
       });
     } catch (err) {
-      throw new AppError('Error initializing init rabbitmq server', err, false);
+      throw new AppError('Error initializing rabbitmq server', err, false);
     }
   };
 
@@ -59,7 +59,7 @@ export default class EventLogger<T> {
   };
 
   private onmessage = (evt: LogEmitter.Event) => {
-    this._logger.info('Event:', evt);
+    // this._logger.info('Event:', evt);
 
     const msg = JSON.stringify(evt);
     this._channel.publish(this.exchange, '', Buffer.from(msg));
@@ -70,7 +70,7 @@ export default class EventLogger<T> {
 
     setTimeout(async () => {
       if (err.message === workerError) {
-        this._logger.info('Restarting worker...');
+        this._logger.warn('Restarting worker...');
         await this.run();
       }
     }, 1000);
